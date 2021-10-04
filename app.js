@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import ASScroll from '@ashthornton/asscroll';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
 import fragment from './shaders/fragment.glsl'
 import vertex from './shaders/vertex.glsl'
@@ -26,6 +27,12 @@ export default class Sketch {
         this.renderer.setPixelRatio(window.devicePixelRatio);
         this.container.appendChild(this.renderer.domElement);
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+
+        this.asscroll = new ASScroll();
+        
+        this.asscroll.enable({
+            horizontalScroll: true
+        });
 
         this.time = 0;
         this.setupSettings();
@@ -57,7 +64,7 @@ export default class Sketch {
     }
 
     addObject(){
-        this.geometry = new THREE.PlaneBufferGeometry( 300, 300, 100, 100 );
+        this.geometry = new THREE.PlaneBufferGeometry( 1, 1, 100, 100 );
         this.material = new THREE.ShaderMaterial({
             uniforms: {
                 time: { value: 1.0 },
@@ -73,34 +80,72 @@ export default class Sketch {
         });
 
         this.tl = gsap.timeline()
-            .to(this.material.uniforms.uCorners.value, {
+            .to(this.material.uniforms.uCorners.value,{
                 x:1,
-                duration: 1
+                duration: 0.4
             })
-            .to(this.material.uniforms.uCorners.value, {
+            .to(this.material.uniforms.uCorners.value,{
                 y:1,
-                duration: 1
-            }, 0.2)
-            .to(this.material.uniforms.uCorners.value, {
+                duration: 0.4
+            },0.1)
+            .to(this.material.uniforms.uCorners.value,{
                 z:1,
-                duration: 1
-            }, 0.4)
-            .to(this.material.uniforms.uCorners.value, {
+                duration: 0.4
+            },0.2)
+            .to(this.material.uniforms.uCorners.value,{
                 w:1,
-                duration: 1
-            }, 0.6)
+                duration: 0.4
+            },0.3)
     
         this.mesh = new THREE.Mesh( this.geometry, this.material );
-        this.scene.add( this.mesh );
+        this.mesh.scale.set(300, 300, 1);
+        // this.scene.add( this.mesh ); 
         this.mesh.position.x = 300;
-        // this.mesh.rotation.z = 0.5;
+
+        this.images = [...document.querySelectorAll('.js-image')];
+        this.materials =[];
+
+        //WebGLアニメーション画像データを一時的に保存
+        this.imageStore = this.images.map(img=>{
+
+            let bounds = img.getBoundingClientRect();
+            let m = this.material.clone ()
+            this.materials.push(m);
+            let texture = new THREE.Texture(img);
+            texture.needsUpdate = true;
+
+            m.uniforms.uTexture.value = texture;
+
+            let mesh = new THREE.Mesh(this.geometry, m);
+            this.scene.add(mesh);
+            mesh.scale.set(bounds.width, bounds.height, 1);
+            return{
+                img: img,
+                mesh: mesh,
+                width: bounds.width,
+                height: bounds.height,
+                top: bounds.top,
+                left: bounds.left,
+            }
+        })
+    }
+
+
+    //一時保存したWebGLアニメーション画像を、既存htmlの位置に配置する
+    setPosition() {
+        console.log(this.asscroll.currentPos)
+        this.imageStore.forEach(o=>{
+            o.mesh.position.x = -this.asscroll.currentPos + o.left - this.width/2 + o.width/2;
+            o.mesh.position.y = -o.top + this.height/2 - o.height/2;
+        })
     }
 
     render(){
         this.time += 0.05;
         this.material.uniforms.time.value = this.time;
+        this.setPosition();
         this.material.uniforms.uProgress.value = this.settings.progress;
-        // this.tl.progress(this.settings.progress)
+        this.tl.progress(this.settings.progress)
         this.mesh.rotation.x = this.time / 2000;
         this.mesh.rotation.y = this.time / 1000;
 
