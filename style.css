@@ -34,7 +34,6 @@ canvas{
     z-index: -1;
     top: 0;
     left: 0;
-    /* background-color: red; */
 }
 .content{
     display: inline-flex;
@@ -81,7 +80,7 @@ canvas{
 }
 .single__top{
     height: 100vh;
-    width: 60%;
+    width: 100%;
     margin: 0 auto;
     background-size: cover;
     background-position: 50% 50%;
@@ -89,19 +88,19 @@ canvas{
 .single__content{
     max-width: 1000px;  
     margin: 50px auto;
-    background-color: red;
+    /* background-color: red; */
 }
 .single__content p{
     margin: 2em 0;
     line-height: 1.7;
     font-size: 1.1em;
-    background-color: aqua;
+    /* background-color: aqua; */
 }
 figure{
     margin: 0 0 3em 0;
     display: flex;
     gap: 50px;
-    background-color: lightgreen;
+    /* background-color: lightgreen; */
 }
 figure+figure{
     flex-direction: row-reverse;
@@ -125,6 +124,13 @@ figure img{
     text-align-last: left;
 }
 
-canvas{
-    /* display: none !important; */
+.curtain{
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    z-index: 100;
+    background: #949494;
+    transform: translate(0,100%)
 }
